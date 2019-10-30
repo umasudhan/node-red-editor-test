@@ -1,0 +1,74 @@
+<script type="text/javascript">
+    var birdsFromBackend;
+    RED.nodes.registerType('test-validation',{
+        category: 'function',
+        color: '#a6bbcf',
+        defaults: {
+            name: {value:""},
+            birdName :{value:'', validate: v => {
+                    console.log('in validate test... v:', v);
+                    if(v===null){ //this method gets called even when the editor ui is not displayed- v will be null in this case
+                        //check if the stored value is equal to the prompt message
+                        if(!this.birdName){
+                            return true; //nothing to validate
+                        }
+                        if(this.birdName.toLowerCase()=== 'please select a bird'){
+                            return false;
+                        }
+                        if(!birdsFromBackend.includes(this.birdName)){
+                            return false;
+                        }
+                    }
+                    return v.trim().toLowerCase() !== 'please select a bird';
+                }
+            }
+        },
+        inputs:1,
+        outputs:1,
+        icon: "file.png",
+        label: function() {
+            return this.name||"test-validation";
+        },
+        oneditprepare: function () {
+            const selectedBird = this.birdName;
+            let birdElement = $("#node-input-birdName");
+            console.log('birdElement.val():', birdElement.val());
+            birdElement.find('option').remove().end();
+            $.getJSON('birds', birds => {
+                birdsFromBackend = birds;
+                let selectionSet = false;
+                $.each(birds, function (index, obj) {
+                    if (selectedBird === obj) {
+                        selectionSet = true;
+                    }
+                    birdElement.append($('<option>', {
+                        value: obj,
+                        text: obj,
+                        selected: selectedBird === obj
+                    }));
+                });
+                if (!selectionSet) {
+                    $("#node-input-birdName option:first").attr('selected', 'selected');
+                    console.log('in edit prepare when selection not set :', ' jquery selection:',$("#node-input-birdName").find("option:selected").val());
+                }
+                console.log('in edit prepare after populating selectedBird:', selectedBird, ' selectionSet:', selectionSet, ' jquery selection:',$("#node-input-birdName").find("option:selected").val());
+            });
+        }
+    });
+</script>
+
+<script type="text/x-red" data-template-name="test-validation">
+    <div class="form-row">
+        <label for="node-input-name"><i class="icon-tag"></i> Name</label>
+        <input type="text" id="node-input-name" placeholder="Name">
+    </div>
+        <div class="form-row" id="bird-div">
+        <label for="node-input-birdName"><i class="fa fa-link"></i> Bird Name</label>
+        <select id="node-input-birdName">
+        </select>
+    </div>
+</script>
+
+<script type="text/x-red" data-help-name="test-validation">
+    <p>A test node for select validation</p>
+</script>
