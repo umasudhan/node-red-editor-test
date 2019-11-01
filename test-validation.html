@@ -1,5 +1,4 @@
 <script type="text/javascript">
-    var birdsFromBackend;
     RED.nodes.registerType('test-validation',{
         category: 'function',
         color: '#a6bbcf',
@@ -8,18 +7,9 @@
             birdName :{value:'', validate: v => {
                     console.log('in validate test... v:', v);
                     if(v===null){ //this method gets called even when the editor ui is not displayed- v will be null in this case
-                        //check if the stored value is equal to the prompt message
-                        if(!this.birdName){
-                            return true; //nothing to validate
-                        }
-                        if(this.birdName.toLowerCase()=== 'please select a bird'){
-                            return false;
-                        }
-                        if(!birdsFromBackend.includes(this.birdName)){
-                            return false;
-                        }
+                        return true;
                     }
-                    return v.trim().toLowerCase() !== 'please select a bird';
+                    return v.trim().toLowerCase() !== 'select a bird';
                 }
             }
         },
@@ -34,8 +24,12 @@
             let birdElement = $("#node-input-birdName");
             console.log('birdElement.val():', birdElement.val());
             birdElement.find('option').remove().end();
+            birdElement.append($('<option>', {
+                value: 'Select a bird',
+                text: 'Select a bird',
+            }));
+            $("#node-input-birdName option[value='Select a bird']").attr('disabled','disabled')
             $.getJSON('birds', birds => {
-                birdsFromBackend = birds;
                 let selectionSet = false;
                 $.each(birds, function (index, obj) {
                     if (selectedBird === obj) {
