@@ -1,34 +1,27 @@
 <script type="text/javascript">
-    RED.nodes.registerType('test-validation',{
+    RED.nodes.registerType('test-validation', {
         category: 'function',
         color: '#a6bbcf',
         defaults: {
-            name: {value:""},
-            birdName :{value:'', validate: v => {
-                    console.log('in validate test... v:', v);
-                    if(v===null){ //this method gets called even when the editor ui is not displayed- v will be null in this case
-                        return true;
-                    }
-                    return v.trim().toLowerCase() !== 'select a bird';
+            name: {value: ""},
+            birdName: {
+                required: true,
+                value: '', validate: v => {
+                    return v && v.length > 0;
                 }
             }
         },
-        inputs:1,
-        outputs:1,
+        inputs: 1,
+        outputs: 1,
         icon: "file.png",
-        label: function() {
-            return this.name||"test-validation";
+        label: function () {
+            return this.name || "test-validation";
         },
         oneditprepare: function () {
+            // $("#node-input-birdName option[value='']").attr('disabled', 'disabled');
             const selectedBird = this.birdName;
             let birdElement = $("#node-input-birdName");
-            console.log('birdElement.val():', birdElement.val());
-            birdElement.find('option').remove().end();
-            birdElement.append($('<option>', {
-                value: 'Select a bird',
-                text: 'Select a bird',
-            }));
-            $("#node-input-birdName option[value='Select a bird']").attr('disabled','disabled')
+            // birdElement.find('option').remove().end();
             $.getJSON('birds', birds => {
                 let selectionSet = false;
                 $.each(birds, function (index, obj) {
@@ -42,10 +35,12 @@
                     }));
                 });
                 if (!selectionSet) {
-                    $("#node-input-birdName option:first").attr('selected', 'selected');
-                    console.log('in edit prepare when selection not set :', ' jquery selection:',$("#node-input-birdName").find("option:selected").val());
+                    $('#node-input-birdName option:selected').removeAttr('selected');
+                    $('#node-input-birdName option:nth-child(0)').attr('selected','selected');
+                }else{
+                    $('#node-input-birdName').removeClass('input-error');
                 }
-                console.log('in edit prepare after populating selectedBird:', selectedBird, ' selectionSet:', selectionSet, ' jquery selection:',$("#node-input-birdName").find("option:selected").val());
+                console.log('in edit prepare after populating selectedBird:', selectedBird, ' selectionSet:', selectionSet, ' jquery selection:', $("#node-input-birdName").find("option:selected").val());
             });
         }
     });
@@ -59,10 +54,20 @@
         <div class="form-row" id="bird-div">
         <label for="node-input-birdName"><i class="fa fa-link"></i> Bird Name</label>
         <select id="node-input-birdName">
+            <option value="" selected>Select a bird</option>
         </select>
     </div>
+
+    </div>
+        <div class="form-row" id="inTransitLimitBlock">
+        <label for="node-input-intransit"><i class="fa fa-plane"></i> In Transit Limit</label>
+        <input type="text" id="node-input-intransit" placeholder="In Transit Limit">
+    </div>
+
+
 </script>
 
 <script type="text/x-red" data-help-name="test-validation">
     <p>A test node for select validation</p>
+
 </script>
